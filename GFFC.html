@@ -124,22 +124,23 @@
     <script>
         let playerCurrency = 500;
         let battleCount = 0;
+        let currentBattle = null; // holds the battle currently shown
 
         // Large hidden n used for backend calculations
         const HIDDEN_N = 9000000;
 
         // A richer set of growth formulas (≈25)
         const growthFormulas = [
-            "n",              // 1
+            "n",
             "2n",
             "3n",
-            "n^2",            // 4
+            "n^2",
             "2n^2",
             "n^3",
             "0.5n^2",
             "sqrt(n)",
             "log(n)",
-            "n log(n)",       // 10
+            "n log(n)",
             "1000",
             "500",
             "2000",
@@ -149,10 +150,10 @@
             "500 + n^2",
             "500 + n^3",
             "1000 + n",
-            "1000 + 2n",      // 20
+            "1000 + 2n",
             "0.1n^3",
             "0.01n^3",
-            "2^((log2 n))",   // effectively n, but looks fancy
+            "2^((log2 n))",
             "2^(log2 n * 1.2)",
             "n^2.5"
         ];
@@ -163,7 +164,6 @@
         }
 
         function getStatValue(formula, n) {
-            // Safe guards for log-ish formulas
             const safeN = n <= 1 ? 2 : n;
             switch (formula) {
                 case "n": return n;
@@ -188,7 +188,7 @@
                 case "1000 + 2n": return 1000 + 2 * n;
                 case "0.1n^3": return 0.1 * n * n * n;
                 case "0.01n^3": return 0.01 * n * n * n;
-                case "2^((log2 n))": return Math.pow(2, log2(safeN)); // == n
+                case "2^((log2 n))": return Math.pow(2, log2(safeN));
                 case "2^(log2 n * 1.2)": return Math.pow(2, log2(safeN) * 1.2);
                 case "n^2.5": return Math.pow(n, 2.5);
                 default: return 500;
@@ -213,7 +213,6 @@
                 attackFormula: randomFormula()
             };
 
-            // Calculate hidden stat values with very large n
             const n = HIDDEN_N;
 
             const warrior = {
@@ -233,14 +232,27 @@
             return { warrior, mage, battleNumber: battleCount };
         }
 
-        // Winner is based on number of attacks to slay, tie-breaker is more negative HP on the victim
+        // Winner is based on number of attacks to slay, tie-breaker is more negative HP
         function simulateBattle(warrior, mage) {
             const wHP = warrior.health;
             const wATK = warrior.attack;
             const mHP = mage.health;
             const mATK = mage.attack;
 
-            // Avoid division by zero / degenerate cases
+            console.log("Warrior stats:", {
+                healthValue: wHP,
+                attackValue: wATK,
+                healthFormula: warrior.healthFormula,
+                attackFormula: warrior.attackFormula
+            });
+
+            console.log("Mage stats:", {
+                healthValue: mHP,
+                attackValue: mATK,
+                healthFormula: mage.healthFormula,
+                attackFormula: mage.attackFormula
+            });
+
             const wAtkEff = wATK <= 0 ? 0.000001 : wATK;
             const mAtkEff = mATK <= 0 ? 0.000001 : mATK;
 
@@ -256,15 +268,13 @@
             } else if (mageAttacksToSlayWarrior < warriorAttacksToSlayMage) {
                 winner = "mage";
             } else {
-                // Same number of attacks, tiebreaker: who leaves opponent more negative
-                const mageOverslay = -finalMageHP;      // how far below 0
+                const mageOverslay = -finalMageHP;
                 const warriorOverslay = -finalWarriorHP;
                 if (mageOverslay > warriorOverslay) {
                     winner = "warrior";
                 } else if (warriorOverslay > mageOverslay) {
                     winner = "mage";
                 } else {
-                    // Perfect tie – arbitrarily pick one to avoid stalemate
                     winner = Math.random() < 0.5 ? "warrior" : "mage";
                 }
             }
@@ -279,7 +289,6 @@
         }
 
         function updateDisplay(battle) {
-            // Show ONLY formulas, hide actual values
             document.getElementById('health1').textContent = battle.warrior.healthFormula;
             document.getElementById('attack1').textContent = battle.warrior.attackFormula;
             document.getElementById('health2').textContent = battle.mage.healthFormula;
@@ -312,14 +321,16 @@
                 return;
             }
 
-            const battle = generateBattle();
-            const result = simulateBattle(battle.warrior, battle.mage);
+            if (!currentBattle) {
+                alert('No active battle to bet on!');
+                return;
+            }
 
-            // Update formulas on screen
-            updateDisplay(battle);
+            // Simulate the battle that is already shown
+            const result = simulateBattle(currentBattle.warrior, currentBattle.mage);
 
             // Log battle result
-            addBattleResult(result, battle.battleNumber);
+            addBattleResult(result, currentBattle.battleNumber);
 
             // Payout
             const multiplier = 1;
@@ -329,27 +340,37 @@
                 playerCurrency -= bet;
             }
 
-            updateDisplay(battle);
+            // Update currency display
+            document.getElementById('currency').textContent = playerCurrency;
+            document.getElementById('betAmount').max = playerCurrency;
 
+            // Check win/lose
             if (playerCurrency >= 10000) {
                 document.getElementById('gameScreen').classList.add('hidden');
                 document.getElementById('gameWon').classList.remove('hidden');
+                return;
             } else if (playerCurrency < 100) {
                 document.getElementById('gameScreen').classList.add('hidden');
                 document.getElementById('gameOver').classList.remove('hidden');
+                return;
             }
+
+            // Generate the NEXT battle and show it
+            currentBattle = generateBattle();
+            updateDisplay(currentBattle);
         }
 
         function restartGame() {
             playerCurrency = 500;
             battleCount = 0;
+            currentBattle = null;
             document.getElementById('battleHistory').innerHTML = '';
             document.getElementById('gameScreen').classList.remove('hidden');
             document.getElementById('gameOver').classList.add('hidden');
             document.getElementById('gameWon').classList.add('hidden');
 
-            const initialBattle = generateBattle();
-            updateDisplay(initialBattle);
+            currentBattle = generateBattle();
+            updateDisplay(currentBattle);
         }
 
         window.onload = function() {
