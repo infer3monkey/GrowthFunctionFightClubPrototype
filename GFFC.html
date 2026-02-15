@@ -4,75 +4,258 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Growth Function Fight Club</title>
+
+    <!-- MathJax for professional math rendering -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)'], ['$', '$']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js" defer></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             color: white;
             min-height: 100vh;
         }
         .container {
-            background: rgba(255,255,255,0.1);
-            padding: 30px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.08);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 18px rgba(0,0,0,0.35);
         }
-        h1 { text-align: center; margin-bottom: 10px; }
+        h1 {
+            text-align: center;
+            margin: 0 0 6px 0;
+            font-size: 24px;
+        }
+
+        .top-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.2fr);
+            gap: 10px;
+            align-items: start;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 20px 0;
+            gap: 6px;
+            margin-top: 6px;
         }
         .character {
-            background: rgba(255,255,255,0.2);
-            padding: 20px;
-            border-radius: 10px;
+            background: rgba(255,255,255,0.12);
+            padding: 10px;
+            border-radius: 8px;
             text-align: center;
         }
-        .character h2 { margin: 0 0 15px 0; color: #ffd700; }
-        .stat { font-size: 20px; font-weight: bold; margin: 10px 0; }
+        .class-label {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .stat {
+            font-size: 13px;
+            font-weight: bold;
+            margin: 4px 0;
+        }
         .health { color: #ff6b6b; }
         .attack { color: #4ecdc4; }
-        input[type="number"] {
-            width: 120px;
-            padding: 10px;
+        .current-value {
+            font-size: 11px;
+            color: #f1f1f1;
+        }
+        .model {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            margin: 0 auto 4px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .bet-panel {
+            text-align: center;
+            margin-top: 6px;
+            font-size: 13px;
+        }
+        input[type="number"] {
+            width: 100px;
+            padding: 6px;
+            font-size: 14px;
             border: none;
-            border-radius: 5px;
-            margin: 10px;
+            border-radius: 4px;
+            margin: 4px;
         }
         button {
             background: #ffd700;
             color: #1e3c72;
             border: none;
-            padding: 12px 24px;
+            padding: 8px 10px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 4px 2px;
+            transition: all 0.2s;
+        }
+        button:hover { transform: scale(1.03); box-shadow: 0 3px 10px rgba(255,215,0,0.5); }
+        button:disabled { background: #666; cursor: not-allowed; transform: none; }
+
+        .currency {
             font-size: 18px;
             font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 10px;
-            transition: all 0.3s;
+            color: #ffd700;
+            margin: 4px 0 0 0;
+            text-align: center;
         }
-        button:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(255,215,0,0.5); }
-        button:disabled { background: #666; cursor: not-allowed; transform: none; }
+
+        #howToPlay {
+            background: rgba(0,0,0,0.35);
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 4px;
+            font-size: 12px;
+            line-height: 1.3;
+        }
+
+        #simulationArea {
+            margin-top: 4px;
+            padding: 8px;
+            background: rgba(0,0,0,0.35);
+            border-radius: 8px;
+            font-size: 12px;
+        }
+        #nDisplay {
+            text-align: center;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .bar-wrapper {
+            position: relative;
+            margin-top: 4px;
+        }
+        .bar-container {
+            position: relative;
+            width: 100%;
+            height: 28px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            transition: width 0.1s linear;
+            background: linear-gradient(90deg, #4ecdc4, #ff6b6b);
+        }
+        .bar-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+        .bar-model {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #fff;
+            pointer-events: none;
+        }
+        #leftModelOverBar {
+            background: rgba(78,205,196,0.9);
+            left: 25%;
+        }
+        #rightModelOverBar {
+            background: rgba(255,107,107,0.9);
+            left: 75%;
+        }
+
+        .current-stats-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+        .current-stats-row div {
+            width: 48%;
+            text-align: center;
+        }
+
+        #graphArea {
+            margin-top: 4px;
+            padding: 6px;
+            background: rgba(0,0,0,0.35);
+            border-radius: 8px;
+        }
+        #graphCanvas {
+            background: rgba(0,0,0,0.4);
+            border-radius: 6px;
+            width: 100%;
+            height: 180px;
+        }
+        .graph-legend {
+            font-size: 10px;
+            margin-top: 2px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 2px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        #battleHistory {
+            margin-top: 8px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .battle-result {
+            background: rgba(0,0,0,0.35);
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        .battle-result img {
+            margin-top: 4px;
+            width: 100%;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
         .game-over, .game-won {
             text-align: center;
-            font-size: 28px;
-            margin: 40px 0;
-        }
-        .currency { font-size: 24px; font-weight: bold; color: #ffd700; margin: 20px 0; }
-        .battle-result { 
-            background: rgba(0,0,0,0.3); 
-            padding: 20px; 
-            border-radius: 10px; 
+            font-size: 22px;
             margin: 20px 0;
-            text-align: center;
-            font-size: 20px;
         }
         .hidden { display: none; }
     </style>
@@ -80,37 +263,106 @@
 <body>
     <div class="container">
         <h1>Growth Function Fight Club</h1>
-        
+
+        <div id="howToPlay">
+            <strong>How to play:</strong>
+            Each fighter’s health and attack are growth functions of n (like n, n², n log n). As n grows to a huge hidden value, some functions dominate. For each battle, both sides’ health and attack are computed at large n, then we simulate how many attacks each side needs to defeat the other. The winner is the side that needs fewer attacks to slay its opponent (extra damage breaks ties). Your goal is to bet on the side whose growth functions will be larger at very large n.
+        </div>
+
         <div id="currencyDisplay" class="currency">💰 Currency: <span id="currency">500</span></div>
-        
+
         <div id="gameScreen">
-            <div class="stats-grid">
-                <div id="char1" class="character">
-                    <h2>⚔️ Warrior</h2>
-                    <div class="stat health">Health growth: <span id="health1">?</span></div>
-                    <div class="stat attack">Attack growth: <span id="attack1">?</span></div>
+            <div class="top-layout">
+                <div>
+                    <div class="stats-grid">
+                        <div id="char1" class="character">
+                            <div id="char1Model" class="model"></div>
+                            <div class="class-label" id="char1Class">Warrior</div>
+                            <div class="stat health">Health: <span id="health1"></span></div>
+                            <div class="current-value">Current: <span id="health1Current">-</span></div>
+                            <div class="stat attack">Attack: <span id="attack1"></span></div>
+                            <div class="current-value">Current: <span id="attack1Current">-</span></div>
+                        </div>
+                        <div id="char2" class="character">
+                            <div id="char2Model" class="model"></div>
+                            <div class="class-label" id="char2Class">Mage</div>
+                            <div class="stat health">Health: <span id="health2"></span></div>
+                            <div class="current-value">Current: <span id="health2Current">-</span></div>
+                            <div class="stat attack">Attack: <span id="attack2"></span></div>
+                            <div class="current-value">Current: <span id="attack2Current">-</span></div>
+                        </div>
+                    </div>
+
+                    <div class="bet-panel">
+                        <label>Bet (min 100): </label>
+                        <input type="number" id="betAmount" min="100" max="500" value="100">
+                        <br>
+                        <button type="button" onclick="setBetMin()">Min Bet</button>
+                        <button type="button" onclick="setBetMax()">Max Bet</button>
+                        <br>
+                        <button id="betWarriorBtn" onclick="gamble('left')">💰 Bet Left Slot</button>
+                        <button id="betMageBtn" onclick="gamble('right')">💰 Bet Right Slot</button>
+                    </div>
                 </div>
-                <div id="char2" class="character">
-                    <h2>🧙 Mage</h2>
-                    <div class="stat health">Health growth: <span id="health2">?</span></div>
-                    <div class="stat attack">Attack growth: <span id="attack2">?</span></div>
+
+                <div>
+                    <div id="simulationArea">
+                        <div id="nDisplay">n: 0 / 1,000,000,000</div>
+                        <div class="bar-wrapper">
+                            <div class="bar-container">
+                                <div id="warriorBar" class="bar-fill" style="width:50%;"></div>
+                                <div id="leftModelOverBar" class="bar-model">L</div>
+                                <div id="rightModelOverBar" class="bar-model">R</div>
+                            </div>
+                        </div>
+                        <div class="bar-labels">
+                            <span id="leftLabel">⬅️ Left side winning</span>
+                            <span id="rightLabel">Right side winning ➡️</span>
+                        </div>
+                        <div class="current-stats-row">
+                            <div>
+                                <strong>Left power</strong><br>
+                                HP: <span id="leftHealthNow">-</span>,
+                                ATK: <span id="leftAttackNow">-</span>
+                            </div>
+                            <div>
+                                <strong>Right power</strong><br>
+                                HP: <span id="rightHealthNow">-</span>,
+                                ATK: <span id="rightAttackNow">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="graphArea">
+                        <canvas id="graphCanvas" width="800" height="180"></canvas>
+                        <div class="graph-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background:#4ecdc4;"></div> 
+                                <span>Left Health</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background:#ff6b6b;"></div> 
+                                <span>Right Health</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background:#1dd1a1;"></div> 
+                                <span>Left Attack</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background:#ff9f43;"></div> 
+                                <span>Right Attack</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <div style="text-align: center; margin: 30px 0;">
-                <label>Bet Amount (min 100): </label>
-                <input type="number" id="betAmount" min="100" max="500" value="100">
-                <br>
-                <button onclick="gamble('warrior')">💰 Bet on Warrior</button>
-                <button onclick="gamble('mage')">💰 Bet on Mage</button>
-            </div>
-            
+
             <div id="battleHistory"></div>
         </div>
-        
+
         <div id="gameOver" class="hidden game-over">
             <div>💀 GAME OVER 💀</div>
-            <p>You went bankrupt!</p>
+            <p>You went bankrupt (below 100 currency)!</p>
             <button onclick="restartGame()">🔄 Restart Game</button>
         </div>
         
@@ -121,44 +373,77 @@
         </div>
     </div>
 
+    <!-- Sound effects -->
+    <audio id="betSound" src="betSound.mp3" preload="auto"></audio>
+    <audio id="winSound" src="winSound.mp3" preload="auto"></audio>
+    <audio id="loseSound" src="loseSound.mp3" preload="auto"></audio>
+    <audio id="gameWinSound" src="gameWinSound.mp3" preload="auto"></audio>
+    <audio id="gameOverSound" src="gameOverSound.mp3" preload="auto"></audio>
+    <audio id="fightLoop" src="fightLoop.mp3" preload="auto" loop></audio>
+
     <script>
         let playerCurrency = 500;
         let battleCount = 0;
-        let currentBattle = null; // holds the battle currently shown
+        let currentBattle = null;
+        let isSimulating = false;
 
-        // Large hidden n used for backend calculations
-        const HIDDEN_N = 9000000;
+        const HIDDEN_N = 1_000_000_000;
+        const SIM_STEPS = 160;
+        const STEP_DELAY_MS = 40;
 
-        // A richer set of growth formulas (≈25)
+        const characterClasses = [
+            { name: "Warrior",    initial: "W", color: "#e74c3c" },
+            { name: "Mage",       initial: "M", color: "#9b59b6" },
+            { name: "Rogue",      initial: "R", color: "#16a085" },
+            { name: "Paladin",    initial: "P", color: "#f1c40f" },
+            { name: "Archer",     initial: "A", color: "#27ae60" },
+            { name: "Necromancer",initial: "N", color: "#2c3e50" },
+            { name: "Monk",       initial: "K", color: "#f39c12" },
+            { name: "Berserker",  initial: "B", color: "#c0392b" },
+            { name: "Ranger",     initial: "G", color: "#2ecc71" },
+            { name: "Assassin",   initial: "S", color: "#34495e" }
+        ];
+
         const growthFormulas = [
-            "n",
-            "2n",
-            "3n",
-            "n^2",
-            "2n^2",
-            "n^3",
-            "0.5n^2",
-            "sqrt(n)",
-            "log(n)",
-            "n log(n)",
-            "1000",
-            "500",
-            "2000",
-            "1/n",
-            "1/sqrt(n)",
-            "1/log(n)",
-            "500 + n^2",
-            "500 + n^3",
-            "1000 + n",
-            "1000 + 2n",
-            "0.1n^3",
-            "0.01n^3",
-            "2^((log2 n))",
-            "2^(log2 n * 1.2)",
+            "n","2n","3n","n^2","2n^2","n^3","0.5n^2",
+            "sqrt(n)","log(n)","n log(n)",
+            "1000","500","2000",
+            "1/n","1/sqrt(n)","1/log(n)",
+            "500 + n^2","500 + n^3",
+            "1000 + n","1000 + 2n",
+            "0.1n^3","0.01n^3",
+            "2^((log2 n))","2^(log2 n * 1.2)",
             "n^2.5"
         ];
 
-        // Utility: base-2 log
+        const formulaDisplayMap = {
+            "n": "\\(n\\)",
+            "2n": "\\(2n\\)",
+            "3n": "\\(3n\\)",
+            "n^2": "\\(n^2\\)",
+            "2n^2": "\\(2n^2\\)",
+            "n^3": "\\(n^3\\)",
+            "0.5n^2": "\\(0.5\\,n^2\\)",
+            "sqrt(n)": "\\(\\sqrt{n}\\)",
+            "log(n)": "\\(\\log n\\)",
+            "n log(n)": "\\(n\\log n\\)",
+            "1000": "\\(1000\\)",
+            "500": "\\(500\\)",
+            "2000": "\\(2000\\)",
+            "1/n": "\\(1/n\\)",
+            "1/sqrt(n)": "\\(1/\\sqrt{n}\\)",
+            "1/log(n)": "\\(1/\\log n\\)",
+            "500 + n^2": "\\(500 + n^2\\)",
+            "500 + n^3": "\\(500 + n^3\\)",
+            "1000 + n": "\\(1000 + n\\)",
+            "1000 + 2n": "\\(1000 + 2n\\)",
+            "0.1n^3": "\\(0.1\\,n^3\\)",
+            "0.01n^3": "\\(0.01\\,n^3\\)",
+            "2^((log2 n))": "\\(2^{\\log_2 n}\\)",
+            "2^(log2 n * 1.2)": "\\(2^{1.2\\,\\log_2 n}\\)",
+            "n^2.5": "\\(n^{2.5}\\)"
+        };
+
         function log2(x) {
             return Math.log(x) / Math.log(2);
         }
@@ -200,6 +485,11 @@
             return growthFormulas[idx];
         }
 
+        function randomClass() {
+            const idx = Math.floor(Math.random() * characterClasses.length);
+            return characterClasses[idx];
+        }
+
         function generateBattle() {
             battleCount++;
 
@@ -207,7 +497,6 @@
                 healthFormula: randomFormula(),
                 attackFormula: randomFormula()
             };
-
             const char2Rates = {
                 healthFormula: randomFormula(),
                 attackFormula: randomFormula()
@@ -215,67 +504,70 @@
 
             const n = HIDDEN_N;
 
-            const warrior = {
+            const leftClass = randomClass();
+            const rightClass = randomClass();
+
+            const left = {
                 health: getStatValue(char1Rates.healthFormula, n),
                 attack: getStatValue(char1Rates.attackFormula, n),
                 healthFormula: char1Rates.healthFormula,
-                attackFormula: char1Rates.attackFormula
+                attackFormula: char1Rates.attackFormula,
+                className: leftClass.name,
+                initial: leftClass.initial,
+                color: leftClass.color
             };
 
-            const mage = {
+            const right = {
                 health: getStatValue(char2Rates.healthFormula, n),
                 attack: getStatValue(char2Rates.attackFormula, n),
                 healthFormula: char2Rates.healthFormula,
-                attackFormula: char2Rates.attackFormula
+                attackFormula: char2Rates.attackFormula,
+                className: rightClass.name,
+                initial: rightClass.initial,
+                color: rightClass.color
             };
 
-            return { warrior, mage, battleNumber: battleCount };
+            return { left, right, battleNumber: battleCount };
         }
 
-        // Winner is based on number of attacks to slay, tie-breaker is more negative HP
-        function simulateBattle(warrior, mage) {
-            const wHP = warrior.health;
-            const wATK = warrior.attack;
-            const mHP = mage.health;
-            const mATK = mage.attack;
+        function simulateBattleAtN(left, right, n) {
+            const L = {
+                health: getStatValue(left.healthFormula, n),
+                attack: getStatValue(left.attackFormula, n)
+            };
+            const R = {
+                health: getStatValue(right.healthFormula, n),
+                attack: getStatValue(right.attackFormula, n)
+            };
 
-            console.log("Warrior stats:", {
-                healthValue: wHP,
-                attackValue: wATK,
-                healthFormula: warrior.healthFormula,
-                attackFormula: warrior.attackFormula
-            });
+            const wHP = L.health;
+            const wATK = L.attack;
+            const mHP = R.health;
+            const mATK = R.attack;
 
-            console.log("Mage stats:", {
-                healthValue: mHP,
-                attackValue: mATK,
-                healthFormula: mage.healthFormula,
-                attackFormula: mage.attackFormula
-            });
-
-            const wAtkEff = wATK <= 0 ? 0.000001 : wATK;
-            const mAtkEff = mATK <= 0 ? 0.000001 : mATK;
+            const wAtkEff = wATK <= 0 ? 1e-6 : wATK;
+            const mAtkEff = mATK <= 0 ? 1e-6 : mATK;
 
             const warriorAttacksToSlayMage = Math.ceil(mHP / wAtkEff);
             const mageAttacksToSlayWarrior = Math.ceil(wHP / mAtkEff);
 
-            const finalMageHP = mHP - warriorAttacksToSlayMage * wAtkEff;
-            const finalWarriorHP = wHP - mageAttacksToSlayWarrior * mAtkEff;
+            const finalMageHP = mHP - warriorAttacksToSlayMage * wATK;
+            const finalWarriorHP = wHP - mageAttacksToSlayWarrior * mATK;
 
             let winner;
             if (warriorAttacksToSlayMage < mageAttacksToSlayWarrior) {
-                winner = "warrior";
+                winner = "left";
             } else if (mageAttacksToSlayWarrior < warriorAttacksToSlayMage) {
-                winner = "mage";
+                winner = "right";
             } else {
                 const mageOverslay = -finalMageHP;
                 const warriorOverslay = -finalWarriorHP;
                 if (mageOverslay > warriorOverslay) {
-                    winner = "warrior";
+                    winner = "left";
                 } else if (warriorOverslay > mageOverslay) {
-                    winner = "mage";
+                    winner = "right";
                 } else {
-                    winner = Math.random() < 0.5 ? "warrior" : "mage";
+                    winner = Math.random() < 0.5 ? "left" : "right";
                 }
             }
 
@@ -284,80 +576,325 @@
                 warriorAttacksToSlayMage,
                 mageAttacksToSlayWarrior,
                 finalWarriorHP,
-                finalMageHP
+                finalMageHP,
+                leftStats: L,
+                rightStats: R
             };
         }
 
+        function simulateBattleFinal(left, right) {
+            return simulateBattleAtN(left, right, HIDDEN_N);
+        }
+
+        let graphData = {
+            nValues: [],
+            leftHealth: [],
+            rightHealth: [],
+            leftAttack: [],
+            rightAttack: []
+        };
+
+        function drawGraph() {
+            const canvas = document.getElementById('graphCanvas');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            if (graphData.nValues.length === 0) {
+                ctx.fillStyle = "#ccc";
+                ctx.font = "12px Arial";
+                ctx.fillText("Graph will appear once the simulation starts.", 10, h / 2);
+                return;
+            }
+
+            const padding = 30;
+            const innerW = w - 2 * padding;
+            const innerH = h - 2 * padding;
+
+            const maxVal = Math.max(
+                ...graphData.leftHealth,
+                ...graphData.rightHealth,
+                ...graphData.leftAttack,
+                ...graphData.rightAttack,
+                1
+            );
+            const maxN = graphData.nValues[graphData.nValues.length - 1] || 1;
+
+            function xForIndex(i) {
+                const t = graphData.nValues[i] / maxN;
+                return padding + t * innerW;
+            }
+            function yForVal(v) {
+                const t = v / maxVal;
+                return padding + (1 - t) * innerH;
+            }
+
+            ctx.strokeStyle = "#aaa";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + innerH);
+            ctx.lineTo(padding + innerW, padding + innerH);
+            ctx.stroke();
+
+            ctx.fillStyle = "#ddd";
+            ctx.font = "10px Arial";
+            ctx.fillText("n", padding + innerW - 10, padding + innerH + 12);
+            ctx.fillText("value", padding - 26, padding + 6);
+
+            function drawSeries(values, color) {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.3;
+                ctx.beginPath();
+                for (let i = 0; i < values.length; i++) {
+                    const x = xForIndex(i);
+                    const y = yForVal(values[i]);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+
+            drawSeries(graphData.leftHealth, "#4ecdc4");
+            drawSeries(graphData.rightHealth, "#ff6b6b");
+            drawSeries(graphData.leftAttack, "#1dd1a1");
+            drawSeries(graphData.rightAttack, "#ff9f43");
+        }
+
+        function renderFormulaSpan(spanId, formulaKey) {
+            const span = document.getElementById(spanId);
+            const latex = formulaDisplayMap[formulaKey] || formulaKey;
+            span.innerHTML = latex;
+        }
+
+        function typesetMath() {
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        }
+
         function updateDisplay(battle) {
-            document.getElementById('health1').textContent = battle.warrior.healthFormula;
-            document.getElementById('attack1').textContent = battle.warrior.attackFormula;
-            document.getElementById('health2').textContent = battle.mage.healthFormula;
-            document.getElementById('attack2').textContent = battle.mage.attackFormula;
+            const char1Model = document.getElementById('char1Model');
+            char1Model.textContent = battle.left.initial;
+            char1Model.style.background = battle.left.color;
+            document.getElementById('char1Class').textContent = battle.left.className;
+            renderFormulaSpan('health1', battle.left.healthFormula);
+            renderFormulaSpan('attack1', battle.left.attackFormula);
+            document.getElementById('health1Current').textContent = "-";
+            document.getElementById('attack1Current').textContent = "-";
+
+            const char2Model = document.getElementById('char2Model');
+            char2Model.textContent = battle.right.initial;
+            char2Model.style.background = battle.right.color;
+            document.getElementById('char2Class').textContent = battle.right.className;
+            renderFormulaSpan('health2', battle.right.healthFormula);
+            renderFormulaSpan('attack2', battle.right.attackFormula);
+            document.getElementById('health2Current').textContent = "-";
+            document.getElementById('attack2Current').textContent = "-";
+
+            const leftModelOverBar = document.getElementById('leftModelOverBar');
+            const rightModelOverBar = document.getElementById('rightModelOverBar');
+            leftModelOverBar.textContent = battle.left.initial;
+            leftModelOverBar.style.background = battle.left.color;
+            rightModelOverBar.textContent = battle.right.initial;
+            rightModelOverBar.style.background = battle.right.color;
+
+            // Update bar labels to show class names
+            const leftLabel = document.getElementById('leftLabel');
+            const rightLabel = document.getElementById('rightLabel');
+            leftLabel.textContent = `⬅️ ${battle.left.className} side winning`;
+            rightLabel.textContent = `${battle.right.className} side winning ➡️`;
 
             document.getElementById('currency').textContent = playerCurrency;
             document.getElementById('betAmount').max = playerCurrency;
+
+            document.getElementById('nDisplay').textContent = "n: 0 / 1,000,000,000";
+            document.getElementById('warriorBar').style.width = "50%";
+            document.getElementById('leftHealthNow').textContent = "-";
+            document.getElementById('leftAttackNow').textContent = "-";
+            document.getElementById('rightHealthNow').textContent = "-";
+            document.getElementById('rightAttackNow').textContent = "-";
+
+            graphData = { nValues: [], leftHealth: [], rightHealth: [], leftAttack: [], rightAttack: [] };
+            drawGraph();
+
+            typesetMath();
         }
 
-        function addBattleResult(result, battleNum) {
+        function addBattleResult(result, battleNum, leftClass, rightClass, graphDataUrl) {
             const history = document.getElementById('battleHistory');
-            const winnerText = result.winner === 'warrior' ? '🏆 WARRIOR WINS!' : '🏆 MAGE WINS!';
+            const winnerText = result.winner === 'left'
+                ? `🏆 LEFT SLOT (${leftClass}) WINS!`
+                : `🏆 RIGHT SLOT (${rightClass}) WINS!`;
             const resultDiv = document.createElement('div');
             resultDiv.className = 'battle-result';
             resultDiv.innerHTML = `
                 <strong>Battle #${battleNum}</strong><br>
                 ${winnerText}<br>
-                Warrior attacks to slay Mage: ${result.warriorAttacksToSlayMage}<br>
-                Mage attacks to slay Warrior: ${result.mageAttacksToSlayWarrior}<br>
+                Left attacks to slay Right: ${result.warriorAttacksToSlayMage}<br>
+                Right attacks to slay Left: ${result.mageAttacksToSlayWarrior}<br>
                 (Extra damage used for tie-breaks)
             `;
+            if (graphDataUrl) {
+                const img = document.createElement('img');
+                img.src = graphDataUrl;
+                img.alt = 'Battle graph';
+                resultDiv.appendChild(img);
+            }
             history.insertBefore(resultDiv, history.firstChild);
         }
 
-        function gamble(character) {
-            const bet = parseInt(document.getElementById('betAmount').value);
+        function setButtonsDisabled(disabled) {
+            document.getElementById('betWarriorBtn').disabled = disabled;
+            document.getElementById('betMageBtn').disabled = disabled;
+            document.getElementById('betAmount').disabled = disabled;
+        }
 
-            if (bet < 100 || bet > playerCurrency) {
-                alert('Bet must be between 100 and your current currency!');
-                return;
+        // New: set min and max bet helpers
+        function setBetMin() {
+            const betInput = document.getElementById('betAmount');
+            betInput.value = 100;
+        }
+
+        function setBetMax() {
+            const betInput = document.getElementById('betAmount');
+            betInput.value = playerCurrency;
+        }
+
+        async function runSimulation(userBetSide, bet) {
+            if (!currentBattle) return;
+            isSimulating = true;
+            setButtonsDisabled(true);
+
+            const fightLoop = document.getElementById('fightLoop');
+            try { fightLoop.currentTime = 0; fightLoop.play(); } catch(e) {}
+
+            const steps = SIM_STEPS;
+            const nMax = HIDDEN_N;
+            const nStep = nMax / steps;
+
+            for (let i = 0; i <= steps; i++) {
+                const n = Math.floor(i * nStep);
+                const res = simulateBattleAtN(currentBattle.left, currentBattle.right, n || 1);
+
+                graphData.nValues.push(n);
+                graphData.leftHealth.push(res.leftStats.health);
+                graphData.rightHealth.push(res.rightStats.health);
+                graphData.leftAttack.push(res.leftStats.attack);
+                graphData.rightAttack.push(res.rightStats.attack);
+                drawGraph();
+
+                document.getElementById('nDisplay').textContent =
+                    `n: ${n.toLocaleString()} / ${nMax.toLocaleString()}`;
+
+                document.getElementById('health1Current').textContent =
+                    Math.round(res.leftStats.health).toLocaleString();
+                document.getElementById('attack1Current').textContent =
+                    Math.round(res.leftStats.attack).toLocaleString();
+                document.getElementById('health2Current').textContent =
+                    Math.round(res.rightStats.health).toLocaleString();
+                document.getElementById('attack2Current').textContent =
+                    Math.round(res.rightStats.attack).toLocaleString();
+
+                document.getElementById('leftHealthNow').textContent =
+                    Math.round(res.leftStats.health).toLocaleString();
+                document.getElementById('leftAttackNow').textContent =
+                    Math.round(res.leftStats.attack).toLocaleString();
+                document.getElementById('rightHealthNow').textContent =
+                    Math.round(res.rightStats.health).toLocaleString();
+                document.getElementById('rightAttackNow').textContent =
+                    Math.round(res.rightStats.attack).toLocaleString();
+
+                const leftPower = res.leftStats.health * res.leftStats.attack;
+                const rightPower = res.rightStats.health * res.rightStats.attack;
+                let leftShare = 0.5;
+                if (leftPower + rightPower > 0) {
+                    leftShare = leftPower / (leftPower + rightPower);
+                }
+                const finalPercent = 10 + leftShare * 80;
+                document.getElementById('warriorBar').style.width = `${finalPercent}%`;
+
+                const leftModelOverBar = document.getElementById('leftModelOverBar');
+                const rightModelOverBar = document.getElementById('rightModelOverBar');
+                leftModelOverBar.style.left = `${finalPercent / 2}%`;
+                rightModelOverBar.style.left = `${100 - (finalPercent / 2)}%`;
+
+                await new Promise(r => setTimeout(r, STEP_DELAY_MS));
             }
 
-            if (!currentBattle) {
-                alert('No active battle to bet on!');
-                return;
-            }
+            const finalResult = simulateBattleFinal(currentBattle.left, currentBattle.right);
 
-            // Simulate the battle that is already shown
-            const result = simulateBattle(currentBattle.warrior, currentBattle.mage);
+            try { fightLoop.pause(); fightLoop.currentTime = 0; } catch(e) {}
 
-            // Log battle result
-            addBattleResult(result, currentBattle.battleNumber);
+            const canvas = document.getElementById('graphCanvas');
+            const graphDataUrl = canvas.toDataURL('image/png');
 
-            // Payout
+            addBattleResult(
+                finalResult,
+                currentBattle.battleNumber,
+                currentBattle.left.className,
+                currentBattle.right.className,
+                graphDataUrl
+            );
+
             const multiplier = 1;
-            if (result.winner === character) {
+            const won = finalResult.winner === userBetSide;
+            if (won) {
                 playerCurrency += Math.floor(bet * multiplier);
             } else {
                 playerCurrency -= bet;
             }
 
-            // Update currency display
             document.getElementById('currency').textContent = playerCurrency;
             document.getElementById('betAmount').max = playerCurrency;
 
-            // Check win/lose
+            if (won) {
+                try { document.getElementById('winSound').play(); } catch(e) {}
+            } else {
+                try { document.getElementById('loseSound').play(); } catch(e) {}
+            }
+
+            // Updated loss condition: cannot bet if < 100
             if (playerCurrency >= 10000) {
                 document.getElementById('gameScreen').classList.add('hidden');
                 document.getElementById('gameWon').classList.remove('hidden');
+                try { document.getElementById('gameWinSound').play(); } catch(e) {}
+                isSimulating = false;
                 return;
-            } else if (playerCurrency < 100) {
+            } else if (playerCurrency <= 99) {
                 document.getElementById('gameScreen').classList.add('hidden');
                 document.getElementById('gameOver').classList.remove('hidden');
+                try { document.getElementById('gameOverSound').play(); } catch(e) {}
+                isSimulating = false;
                 return;
             }
 
-            // Generate the NEXT battle and show it
             currentBattle = generateBattle();
             updateDisplay(currentBattle);
+
+            isSimulating = false;
+            setButtonsDisabled(false);
+        }
+
+        function gamble(side) {
+            if (isSimulating) return;
+
+            const bet = parseInt(document.getElementById('betAmount').value);
+            if (bet < 100 || bet > playerCurrency) {
+                alert('Bet must be between 100 and your current currency!');
+                return;
+            }
+            if (!currentBattle) {
+                alert('No active battle to bet on!');
+                return;
+            }
+
+            try { document.getElementById('betSound').play(); } catch(e) {}
+
+            const userBetSide = side;
+            runSimulation(userBetSide, bet);
         }
 
         function restartGame() {
@@ -368,9 +905,11 @@
             document.getElementById('gameScreen').classList.remove('hidden');
             document.getElementById('gameOver').classList.add('hidden');
             document.getElementById('gameWon').classList.add('hidden');
+            document.getElementById('currency').textContent = playerCurrency;
 
             currentBattle = generateBattle();
             updateDisplay(currentBattle);
+            setButtonsDisabled(false);
         }
 
         window.onload = function() {
