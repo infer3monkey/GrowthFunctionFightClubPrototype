@@ -86,6 +86,7 @@
             font-size: 18px;
             font-weight: bold;
             color: #fff;
+            overflow: hidden;
         }
 
         .bet-panel {
@@ -93,6 +94,13 @@
             margin-top: 6px;
             font-size: 13px;
         }
+
+        .bar-model img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         input[type="number"] {
             width: 100px;
             padding: 6px;
@@ -182,6 +190,7 @@
             font-size: 14px;
             color: #fff;
             pointer-events: none;
+            overflow: hidden;
         }
         #leftModelOverBar {
             background: rgba(78,205,196,0.9);
@@ -276,7 +285,9 @@
                 <div>
                     <div class="stats-grid">
                         <div id="char1" class="character">
-                            <div id="char1Model" class="model"></div>
+                            <div id="char1Model" class="model">
+                                <img id="char1Img" src="" alt="">
+                            </div>
                             <div class="class-label" id="char1Class">Warrior</div>
                             <div class="stat health">Health: <span id="health1"></span></div>
                             <div class="current-value">Current: <span id="health1Current">-</span></div>
@@ -284,7 +295,9 @@
                             <div class="current-value">Current: <span id="attack1Current">-</span></div>
                         </div>
                         <div id="char2" class="character">
-                            <div id="char2Model" class="model"></div>
+                            <div id="char2Model" class="model">
+                                <img id="char2Img" src="" alt="">
+                            </div>
                             <div class="class-label" id="char2Class">Mage</div>
                             <div class="stat health">Health: <span id="health2"></span></div>
                             <div class="current-value">Current: <span id="health2Current">-</span></div>
@@ -311,8 +324,12 @@
                         <div class="bar-wrapper">
                             <div class="bar-container">
                                 <div id="warriorBar" class="bar-fill" style="width:50%;"></div>
-                                <div id="leftModelOverBar" class="bar-model">L</div>
-                                <div id="rightModelOverBar" class="bar-model">R</div>
+                                <div id="leftModelOverBar" class="bar-model">
+                                    <img id="leftModelOverImg" src="" alt="">
+                                </div>
+                                <div id="rightModelOverBar" class="bar-model">
+                                    <img id="rightModelOverImg" src="" alt="">
+                                </div>
                             </div>
                         </div>
                         <div class="bar-labels">
@@ -374,12 +391,13 @@
     </div>
 
     <!-- Sound effects -->
-    <audio id="betSound" src="betSound.mp3" preload="auto"></audio>
-    <audio id="winSound" src="winSound.mp3" preload="auto"></audio>
-    <audio id="loseSound" src="loseSound.mp3" preload="auto"></audio>
-    <audio id="gameWinSound" src="gameWinSound.mp3" preload="auto"></audio>
-    <audio id="gameOverSound" src="gameOverSound.mp3" preload="auto"></audio>
-    <audio id="fightLoop" src="fightLoop.mp3" preload="auto" loop></audio>
+    <audio id="betSound" src="sounds/betSound.mp3" preload="auto"></audio>
+    <audio id="winSound" src="sounds/winSound.mp3" preload="auto"></audio>
+    <audio id="loseSound" src="sounds/loseSound.mp3" preload="auto"></audio>
+    <audio id="gameWinSound" src="sounds/gameWinSound.mp3" preload="auto"></audio>
+    <audio id="gameOverSound" src="sounds/gameOverSound.mp3" preload="auto"></audio>
+    <audio id="fightLoop" src="sounds/fightLoop.mp3" preload="auto" loop></audio>
+    <audio id="thinkingLoop" src="sounds/thinkingLoop.mp3" preload="auto" loop></audio>
 
     <script>
         let playerCurrency = 500;
@@ -488,6 +506,22 @@
         function randomClass() {
             const idx = Math.floor(Math.random() * characterClasses.length);
             return characterClasses[idx];
+        }
+
+        function getModelImageForClass(className) {
+            const map = {
+                "Warrior": "imgs/warriorClass.png",
+                "Mage": "imgs/mageClass.png",
+                "Rogue": "imgs/rogueClass.png",
+                "Paladin": "imgs/paladinClass.png",
+                "Archer": "imgs/archerClass.png",
+                "Necromancer": "imgs/necromancerClass.png",
+                "Monk": "imgs/monkClass.png",
+                "Berserker": "imgs/berserkerClass.png",
+                "Ranger": "imgs/rangerClass.png",
+                "Assassin": "imgs/assassinClass.png"
+            };
+            return map[className] || "imgs/warriorClass.png";
         }
 
         function generateBattle() {
@@ -677,8 +711,14 @@
 
         function updateDisplay(battle) {
             const char1Model = document.getElementById('char1Model');
-            char1Model.textContent = battle.left.initial;
-            char1Model.style.background = battle.left.color;
+            const char1Img = document.getElementById('char1Img');
+            char1Img.src = getModelImageForClass(battle.left.className);
+            char1Img.alt = battle.left.className;
+            char1Img.style.width = "100%";
+            char1Img.style.height = "100%";
+            char1Img.style.objectFit = "cover";
+            char1Model.style.background = "none";
+
             document.getElementById('char1Class').textContent = battle.left.className;
             renderFormulaSpan('health1', battle.left.healthFormula);
             renderFormulaSpan('attack1', battle.left.attackFormula);
@@ -686,22 +726,26 @@
             document.getElementById('attack1Current').textContent = "-";
 
             const char2Model = document.getElementById('char2Model');
-            char2Model.textContent = battle.right.initial;
-            char2Model.style.background = battle.right.color;
+            const char2Img = document.getElementById('char2Img');
+            char2Img.src = getModelImageForClass(battle.right.className);
+            char2Img.alt = battle.right.className;
+            char2Img.style.width = "100%";
+            char2Img.style.height = "100%";
+            char2Img.style.objectFit = "cover";
+            char2Model.style.background = "none";
+
             document.getElementById('char2Class').textContent = battle.right.className;
             renderFormulaSpan('health2', battle.right.healthFormula);
             renderFormulaSpan('attack2', battle.right.attackFormula);
             document.getElementById('health2Current').textContent = "-";
             document.getElementById('attack2Current').textContent = "-";
 
-            const leftModelOverBar = document.getElementById('leftModelOverBar');
-            const rightModelOverBar = document.getElementById('rightModelOverBar');
-            leftModelOverBar.textContent = battle.left.initial;
-            leftModelOverBar.style.background = battle.left.color;
-            rightModelOverBar.textContent = battle.right.initial;
-            rightModelOverBar.style.background = battle.right.color;
+            const leftBarImg  = document.getElementById('leftModelOverImg');
+            const rightBarImg = document.getElementById('rightModelOverImg');
 
-            // Update bar labels to show class names
+            leftBarImg.src  = getModelImageForClass(battle.left.className);
+            rightBarImg.src = getModelImageForClass(battle.right.className);
+
             const leftLabel = document.getElementById('leftLabel');
             const rightLabel = document.getElementById('rightLabel');
             leftLabel.textContent = `⬅️ ${battle.left.className} side winning`;
@@ -723,11 +767,23 @@
             typesetMath();
         }
 
-        function addBattleResult(result, battleNum, leftClass, rightClass, graphDataUrl) {
+        function addBattleResult(
+            result,
+            battleNum,
+            leftClass,
+            rightClass,
+            graphDataUrl,
+            leftHealthFormula,
+            leftAttackFormula,
+            rightHealthFormula,
+            rightAttackFormula,
+            userBetSide
+        ) {
             const history = document.getElementById('battleHistory');
             const winnerText = result.winner === 'left'
                 ? `🏆 LEFT SLOT (${leftClass}) WINS!`
                 : `🏆 RIGHT SLOT (${rightClass}) WINS!`;
+
             const resultDiv = document.createElement('div');
             resultDiv.className = 'battle-result';
             resultDiv.innerHTML = `
@@ -743,6 +799,48 @@
                 img.alt = 'Battle graph';
                 resultDiv.appendChild(img);
             }
+
+            // AI help section
+            const helpContainer = document.createElement('div');
+            helpContainer.style.marginTop = '4px';
+            helpContainer.style.fontSize = '11px';
+
+            const helpButton = document.createElement('button');
+            helpButton.textContent = '❓ Why did I win/lose?';
+            helpButton.style.fontSize = '11px';
+
+            const helpText = document.createElement('div');
+            helpText.textContent = 'Click for an explanation.';
+            helpText.style.marginTop = '4px';
+
+            helpButton.addEventListener('click', async () => {
+                helpButton.disabled = true;
+                helpText.textContent = 'Loading AI explanation...';
+
+                try {
+                    const params = new URLSearchParams({
+                        leftHealthFormula,
+                        leftAttackFormula,
+                        rightHealthFormula,
+                        rightAttackFormula,
+                        userBetSide,
+                        winner: result.winner
+                    });
+
+                    const response = await fetch(`/AiResponse/?${params.toString()}`);
+                    const data = await response.json();
+                    helpText.textContent = data.explanation || 'No explanation returned.';
+                } catch (e) {
+                    console.error(e);
+                    helpText.textContent = 'Error getting AI explanation.';
+                    helpButton.disabled = false;
+                }
+            });
+
+            helpContainer.appendChild(helpButton);
+            helpContainer.appendChild(helpText);
+            resultDiv.appendChild(helpContainer);
+
             history.insertBefore(resultDiv, history.firstChild);
         }
 
@@ -752,7 +850,6 @@
             document.getElementById('betAmount').disabled = disabled;
         }
 
-        // New: set min and max bet helpers
         function setBetMin() {
             const betInput = document.getElementById('betAmount');
             betInput.value = 100;
@@ -770,6 +867,9 @@
 
             const fightLoop = document.getElementById('fightLoop');
             try { fightLoop.currentTime = 0; fightLoop.play(); } catch(e) {}
+
+            const thinkingLoop = document.getElementById('thinkingLoop');
+            try { thinkingLoop.pause(); thinkingLoop.currentTime = 0; } catch(e) {}
 
             const steps = SIM_STEPS;
             const nMax = HIDDEN_N;
@@ -836,7 +936,12 @@
                 currentBattle.battleNumber,
                 currentBattle.left.className,
                 currentBattle.right.className,
-                graphDataUrl
+                graphDataUrl,
+                currentBattle.left.healthFormula,
+                currentBattle.left.attackFormula,
+                currentBattle.right.healthFormula,
+                currentBattle.right.attackFormula,
+                userBetSide
             );
 
             const multiplier = 1;
@@ -856,7 +961,6 @@
                 try { document.getElementById('loseSound').play(); } catch(e) {}
             }
 
-            // Updated loss condition: cannot bet if < 100
             if (playerCurrency >= 10000) {
                 document.getElementById('gameScreen').classList.add('hidden');
                 document.getElementById('gameWon').classList.remove('hidden');
@@ -876,6 +980,9 @@
 
             isSimulating = false;
             setButtonsDisabled(false);
+
+            const thinkingLoop2 = document.getElementById('thinkingLoop');
+            try { thinkingLoop2.currentTime = 0; thinkingLoop2.play(); } catch (e) {}
         }
 
         function gamble(side) {
@@ -892,6 +999,9 @@
             }
 
             try { document.getElementById('betSound').play(); } catch(e) {}
+
+            const thinkingLoop = document.getElementById('thinkingLoop');
+            try { thinkingLoop.pause(); thinkingLoop.currentTime = 0; } catch (e) {}
 
             const userBetSide = side;
             runSimulation(userBetSide, bet);
@@ -910,6 +1020,9 @@
             currentBattle = generateBattle();
             updateDisplay(currentBattle);
             setButtonsDisabled(false);
+
+            const thinkingLoop = document.getElementById('thinkingLoop');
+            try { thinkingLoop.currentTime = 0; thinkingLoop.play(); } catch (e) {}
         }
 
         window.onload = function() {
