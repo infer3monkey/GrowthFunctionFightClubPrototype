@@ -56,7 +56,8 @@ app.get('/AiResponse/', async (req, res) => {
         `.trim()
 
     // Get model instance
-    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
+    //const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' }) // Dev Environment
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
     // Call generateContent with the prompt
     const result = await model.generateContent(prompt)
@@ -77,6 +78,22 @@ app.get('/AiResponse/', async (req, res) => {
     });
   }
 })
+
+app.get('/test-key', async (req, res) => {
+  const key = process.env.api_key;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({contents: [{parts: [{text: 'test'}]}]})
+    });
+    res.json(await resp.json());
+  } catch (e) {
+    res.json({error: e.message});
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server has started on port: ${PORT}`)
