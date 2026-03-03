@@ -1,12 +1,21 @@
 import express from 'express'
 import path, { dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'  // npm i openai
 import dotenv from 'dotenv'
 
-//dotenv.config() // Dev Environment Only
-console.log("API KEY: ", process.env.api_key)
-const genAI = new GoogleGenerativeAI(process.env.api_key)  // or process.env.API_KEY
+//dotenv.config() // Dev only
+
+console.log("OPENROUTER KEY: ", process.env.OPENROUTER_API_KEY ? 'Loaded' : 'MISSING')
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: 'https://openrouter.ai/api/v1',
+  defaultHeaders: {
+    'HTTP-Referer': 'https://growthfunctionfightclub.onrender.com',
+    'X-Title': 'Growth Function Fighting Club'
+  }
+})
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -55,46 +64,63 @@ app.get('/AiResponse/', async (req, res) => {
         Keep it under 180 words, no LaTeX, plain text.
         `.trim()
 
-    // Get model instance
-    //const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' }) // Dev Environment
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+    // OpenRouter → Gemini 3.1 Flash (fastest/cheapest)
+    const completion = await openai.chat.completions.create({
+      model: 'google/gemini-3.1-flash-lite-preview',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+      max_tokens: 300
+    })
 
-    // Call generateContent with the prompt
-    const result = await model.generateContent(prompt)
-    const response = await result.response
-    const text = response.text()
+    const text = completion.choices[0].message.content
 
     res.json({ explanation: text })
   } catch (err) {
     console.error(err);
-    if (err.status === 429) {
-        return res.json({
-        explanation:
-            "The AI helper is out of quota. Try again later."
-        });
+    if (err.status === 429 || err.message.includes('rate')) {
+      return res.json({
+        explanation: "AI helper busy. Try again in 30s."
+      })
     }
     res.status(500).json({
-        explanation: "Sorry, the AI helper is unavailable right now."
-    });
+      explanation: "AI helper unavailable. Check back soon!"
+    })
   }
 })
 
+// Keep for debugging
 app.get('/test-key', async (req, res) => {
-  const key = process.env.api_key;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+  const key = process.env.OPENROUTER_API_KEY;
+  console.log('OPENROUTER_KEY loaded:', !!key);
+  console.log('OPENROUTER_KEY length:', key ? key.length : 0);
+  console.log('OPENROUTER_KEY preview:', key ? key.substring(0, 8) + '...' : 'MISSING');
+
   try {
-    const resp = await fetch(url, {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({contents: [{parts: [{text: 'test'}]}]})
+      headers: {
+        'Authorization': `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://growthfunctionfightclub.onrender.com',
+        'X-Title': 'Growth Function Fighting Club'
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-3.1-flash-lite-preview',
+        messages: [{ role: 'user', content: 'say hi' }],
+        max_tokens: 50
+      })
     });
-    res.json(await resp.json());
+
+    const data = await resp.json();
+    console.log('OpenRouter status:', resp.status);
+    res.json(data);
   } catch (e) {
-    res.json({error: e.message});
+    console.error('test-key error:', e);
+    res.status(500).json({ error: e.message });
   }
 });
 
 
 app.listen(PORT, () => {
-  console.log(`Server has started on port: ${PORT}`)
+  console.log(`Server started on port: ${PORT}`)
 })
