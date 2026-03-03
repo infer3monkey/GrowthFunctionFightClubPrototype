@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import dotenv from 'dotenv'
 
-dotenv.config()
+// dotenv.config() // Dev Environment Only
 
 const genAI = new GoogleGenerativeAI(process.env.api_key)  // or process.env.API_KEY
 
