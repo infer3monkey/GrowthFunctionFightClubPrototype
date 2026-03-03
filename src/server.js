@@ -11,7 +11,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
   baseURL: 'https://openrouter.ai/api/v1',
   defaultHeaders: {
-    'HTTP-Referer': 'https://growthfunctionfightclub.onrender.com/test-key',
+    'HTTP-Referer': 'https://growthfunctionfightclub.onrender.com',
     'X-Title': 'Growth Function Fighting Club'
   }
 })
