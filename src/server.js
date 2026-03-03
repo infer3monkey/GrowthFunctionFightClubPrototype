@@ -89,18 +89,36 @@ app.get('/AiResponse/', async (req, res) => {
 
 // Keep for debugging
 app.get('/test-key', async (req, res) => {
+  const key = process.env.OPENROUTER_API_KEY;
+  console.log('OPENROUTER_KEY loaded:', !!key);
+  console.log('OPENROUTER_KEY length:', key ? key.length : 0);
+  console.log('OPENROUTER_KEY preview:', key ? key.substring(0, 8) + '...' : 'MISSING');
+
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'google/gemini-3.1-flash-lite-preview',
-      messages: [{ role: 'user', content: 'say hi' }],
-      temperature: 0.3,
-      max_tokens: 200
-    })
-    res.json({ success: true, response: completion.choices[0].message.content })
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://growthfunctionfightclub.onrender.com',
+        'X-Title': 'Growth Function Fighting Club'
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-3.1-flash-lite-preview',
+        messages: [{ role: 'user', content: 'say hi' }],
+        max_tokens: 50
+      })
+    });
+
+    const data = await resp.json();
+    console.log('OpenRouter status:', resp.status);
+    res.json(data);
   } catch (e) {
-    res.json({ error: e.message })
+    console.error('test-key error:', e);
+    res.status(500).json({ error: e.message });
   }
-})
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server started on port: ${PORT}`)
