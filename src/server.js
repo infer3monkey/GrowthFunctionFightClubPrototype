@@ -4,8 +4,8 @@ import { fileURLToPath } from 'url'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import dotenv from 'dotenv'
 
-// dotenv.config() // Dev Environment Only
-
+//dotenv.config() // Dev Environment Only
+console.log("API KEY: ", process.env.api_key)
 const genAI = new GoogleGenerativeAI(process.env.api_key)  // or process.env.API_KEY
 
 const app = express()
