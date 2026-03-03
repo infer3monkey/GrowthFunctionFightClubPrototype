@@ -9,7 +9,11 @@ console.log("OPENROUTER KEY: ", process.env.OPENROUTER_API_KEY ? 'Loaded' : 'MIS
 
 const openai = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: 'https://openrouter.ai/api/v1'
+  baseURL: 'https://openrouter.ai/api/v1',
+  defaultHeaders: {
+    'HTTP-Referer': 'https://growthfunctionfightclub.onrender.com/test-key',
+    'X-Title': 'Growth Function Fighting Club'
+  }
 })
 
 const app = express()
